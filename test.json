@@ -1,0 +1,8 @@
+{
+	name:test,
+	attr:dir,
+	permission:011011011,
+	children:{name:test.txt,attr:file,permission:111111111,children: ,inside:text,passwd: },
+	inside: ,
+	passwd: 
+}
