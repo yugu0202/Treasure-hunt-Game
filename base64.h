@@ -1,2 +1,3 @@
 
-void Base64(char* ,char* ,char* ,int* );
+void decode_base64(char* ,char* );
+void encode_base64(char* ,char* );

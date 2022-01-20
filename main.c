@@ -2,17 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-#include "base64.h"
 #include "command.h"
+
+#define HISTORY 100
 
 //escape game
 
 int h,w;
 
+char (*commandLog)[256];
+
+
 int Title()
 {
 	int x,y;
-	char titleText[][256] = {"command escape game","[s] start","[q] quit"};
+	char titleText[][256] = {"command treasure hunt","[s] start","[q] quit"};
 
 	erase();
 
@@ -38,7 +42,7 @@ void Shift(char (*arr)[w],char text[])
 	strcpy(arr[0],text);
 }
 
-void CommandAnalysisSub(char* place,char* tp,char* ret)
+void CommandAnalysisSub(char* place,char* tp,char* ret,int* gameFlag)
 {
 	char pipe[256] = "";
 	int pFlag = 0;
@@ -55,7 +59,7 @@ void CommandAnalysisSub(char* place,char* tp,char* ret)
 		{
 			tp = strtok(NULL," ");
 			//call openssl
-			Base64(tp,ret,pipe,&pFlag);
+			ComBase64(tp,ret,pipe,&pFlag);
 		}
 		else if (strcmp(tp,"cat") == 0)
 		{
@@ -63,15 +67,31 @@ void CommandAnalysisSub(char* place,char* tp,char* ret)
 			//call cat
 			ComCat(place,tp,ret,pipe,&pFlag);
 		}
+		else if (!strcmp(tp,"ls"))
+		{
+			tp = strtok(NULL," ");
+			//call ls
+			ComLs(place,tp,ret,pipe,&pFlag);
+		}
+		else if (strcmp(tp,"exit") == 0)
+		{
+			*gameFlag = 0;
+			strcpy(ret,"End.");
+			break;
+		}
 
 		tp = strtok(NULL," ");
 	}
 
 }
 
-void CommandAnalysis(char* place,char* buf,char (*log)[w])
+void CommandAnalysis(char* place,char* buf,char (*log)[w],int* gameFlag)
 {
 	char logText[256] = "";
+	char command[256];
+
+	strcpy(command,buf);
+
 	char* tp = strtok(buf," ");
 
 	if (buf[0] == '\0')
@@ -79,39 +99,41 @@ void CommandAnalysis(char* place,char* buf,char (*log)[w])
 		return;
 	}
 
-	CommandAnalysisSub(place,tp,logText);
+	CommandAnalysisSub(place,tp,logText,gameFlag);
 
-	/*
-	else if (strcmp(buf,"ls") == 0)
+	if (logText[0] != '\0' && strcmp(commandLog[0],command) != 0)
 	{
-		strcpy(logText,"key\tdoor.tgz");
+		for (int i = HISTORY; i >= 0; i--)
+		{
+			strcpy(commandLog[i],commandLog[i-1]);
+		}
+		strcpy(commandLog[0],command);
 	}
-	else if (strcmp(buf,"cat key") == 0)
-	{
-		strcpy(logText,"dGhpc2lza2V5");
-	}
-	*/
 
-	for (int i = (h-1); i >= 0; i--)
-	{
-		strcpy(log[i],log[i-1]);
-	}
-	strcpy(log[0],logText);
+	Shift(log,logText);
+	logText[0] = '\0';
 
 }
 
 void Game()
 {
-	int x = 0,y;
-	char place[] = "/home/room";
-	char lineFormat[] = "escape@escape-game %s $ %s",bufFormat[] = "%s%c";
-	char ch,viewText[w],buf[256] = "";
+	int x = 0,y,ch;
+	int gameFlag = 1;
+	int before = -1;
+	char place[] = "/outside/remains";
+	char lineFormat[] = "treasure@treasure-hunt %s $ %s",bufFormat[] = "%s%c";
+	char viewText[w],buf[256] = "";
 
 	char (*log)[w];
 
 	log = malloc(sizeof(char) * (h-1) * w);
 
-	while (1)
+	for (int i = 0; i < (h-1); i++)
+	{
+		strcpy(log[i],"");
+	}
+
+	while (gameFlag)
 	{
 		sprintf(viewText,lineFormat,place,buf);
 		erase();
@@ -121,7 +143,7 @@ void Game()
 		{
 			move(y,x);
 			addstr(log[i]);
-			y -= 1;
+			y--;
 		}
 		y = h - 1;
 		move(y,x);
@@ -129,22 +151,52 @@ void Game()
 		refresh();
 
 		ch = getch();
-		if (ch == 127)
+		if (ch == KEY_BACKSPACE)
 		{
 			buf[strlen(buf)-1] = '\0';
 		}
 		else if (ch == 10)
 		{
+			before = -1;
 			Shift(log,viewText);
 
-			CommandAnalysis(place,buf,log);
+			CommandAnalysis(place,buf,log,&gameFlag);
 			buf[0] = '\0';
+		}
+		else if (ch == KEY_UP)
+		{
+			if (before == -1)
+			{
+				before = 0;
+				if (commandLog[before][0] != '\0') strcpy(buf,commandLog[before]);
+			}
+			else if (commandLog[before+1][0] != '\0')
+			{
+				before++;
+				strcpy(buf,commandLog[before]);
+			}
+		}
+		else if (ch == KEY_DOWN)
+		{
+			if (before == 0)
+			{
+				before--;
+				strcpy(buf,"");
+			}
+			else if (before >= 1 && commandLog[before-1][0] != '\0')
+			{
+				before--;
+				strcpy(buf,commandLog[before]);
+			}
 		}
 		else
 		{
 			sprintf(buf,bufFormat,buf,ch);
 		}
 	}
+
+	erase();
+	refresh();
 
 	free(log);
 }
@@ -153,10 +205,18 @@ int main(void)
 {
 	int ch;
 
+	commandLog = malloc(sizeof(char) * HISTORY * 256);
+
+	for (int i = 0; i < HISTORY; i++)
+	{
+		strcpy(commandLog[i],"");
+	}
+
 	//screen setting
 	initscr();
 	noecho();
 	cbreak();
+	keypad(stdscr,TRUE);
 	getmaxyx(stdscr,h,w);
 
 
