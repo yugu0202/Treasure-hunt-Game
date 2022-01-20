@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-#include "ossl.h"
+#include "base64.h"
+#include "command.h"
 
 //escape game
 
@@ -37,19 +38,50 @@ void Shift(char (*arr)[w],char text[])
 	strcpy(arr[0],text);
 }
 
-void CommandAnalysis(char* buf,char (*log)[w])
+void CommandAnalysisSub(char* place,char* tp,char* ret)
+{
+	char pipe[256] = "";
+	int pFlag = 0;
+
+	while (tp != NULL)
+	{
+		if (strcmp(tp,"echo") == 0)
+		{
+			tp = strtok(NULL," ");
+			//call echo
+			ComEcho(tp,ret,pipe,&pFlag);
+		}
+		else if (strcmp(tp,"base64") == 0)
+		{
+			tp = strtok(NULL," ");
+			//call openssl
+			Base64(tp,ret,pipe,&pFlag);
+		}
+		else if (strcmp(tp,"cat") == 0)
+		{
+			tp = strtok(NULL," ");
+			//call cat
+			ComCat(place,tp,ret,pipe,&pFlag);
+		}
+
+		tp = strtok(NULL," ");
+	}
+
+}
+
+void CommandAnalysis(char* place,char* buf,char (*log)[w])
 {
 	char logText[256] = "";
+	char* tp = strtok(buf," ");
+
 	if (buf[0] == '\0')
 	{
 		return;
 	}
-	else if (strcmp(buf,"echo key | openssl -d -base64") == 0)
-	{
-		 char dec[] = "dGhpc2lza2V5";
 
-		 decode_base64(logText,dec);
-	}
+	CommandAnalysisSub(place,tp,logText);
+
+	/*
 	else if (strcmp(buf,"ls") == 0)
 	{
 		strcpy(logText,"key\tdoor.tgz");
@@ -58,6 +90,7 @@ void CommandAnalysis(char* buf,char (*log)[w])
 	{
 		strcpy(logText,"dGhpc2lza2V5");
 	}
+	*/
 
 	for (int i = (h-1); i >= 0; i--)
 	{
@@ -104,7 +137,7 @@ void Game()
 		{
 			Shift(log,viewText);
 
-			CommandAnalysis(buf,log);
+			CommandAnalysis(place,buf,log);
 			buf[0] = '\0';
 		}
 		else
