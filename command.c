@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "base64.h"
+#include "viewText.h"
 #include "command.h"
 
 //相対パス to 絶対パス
@@ -71,9 +72,17 @@ void GetFile(char* path,char* out)
 
 void GetList(char* path,char* out)
 {
-	if (!strncmp(path,"/outside/remains",(strlen(path) - 1)))
+	if (!strcmp(path,"/outside/remains/") || !strcmp(path,"/outside/remains"))
 	{
 		strcpy(out,"key\ttreasure-chest.zip");
+	}
+	else if (!strcmp(path,"/outside") || !strcmp(path,"/outside/"))
+	{
+		strcpy(out,"remains");
+	}
+	else if (!strcmp(path,"/"))
+	{
+		strcpy(out,"outside");
 	}
 	else
 	{
@@ -138,6 +147,11 @@ void ComCat(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 
 	PathConvert(in,base,path);
 	GetFile(path,out);
+	
+	if (!*pFlag)
+	{
+		ViewText(out);
+	}
 }
 
 //base64 encode & decode

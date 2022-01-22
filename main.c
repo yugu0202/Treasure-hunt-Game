@@ -76,7 +76,6 @@ void CommandAnalysisSub(char* place,char* tp,char* ret,int* gameFlag)
 		else if (strcmp(tp,"exit") == 0)
 		{
 			*gameFlag = 0;
-			strcpy(ret,"End.");
 			break;
 		}
 
@@ -94,6 +93,12 @@ void CommandAnalysis(char* place,char* buf,char (*log)[w],int* gameFlag)
 
 	char* tp = strtok(buf," ");
 
+	for (int i = HISTORY; i >= 1; i--)
+	{
+		strcpy(commandLog[i],commandLog[i-1]);
+	}
+	strcpy(commandLog[0],command);
+
 	if (buf[0] == '\0')
 	{
 		return;
@@ -101,17 +106,7 @@ void CommandAnalysis(char* place,char* buf,char (*log)[w],int* gameFlag)
 
 	CommandAnalysisSub(place,tp,logText,gameFlag);
 
-	if (logText[0] != '\0' && strcmp(commandLog[0],command) != 0)
-	{
-		for (int i = HISTORY; i >= 0; i--)
-		{
-			strcpy(commandLog[i],commandLog[i-1]);
-		}
-		strcpy(commandLog[0],command);
-	}
-
 	Shift(log,logText);
-	logText[0] = '\0';
 
 }
 
@@ -130,7 +125,7 @@ void Game()
 
 	for (int i = 0; i < (h-1); i++)
 	{
-		strcpy(log[i],"");
+		log[i][0] = '\0';
 	}
 
 	while (gameFlag)
@@ -209,7 +204,7 @@ int main(void)
 
 	for (int i = 0; i < HISTORY; i++)
 	{
-		strcpy(commandLog[i],"");
+		commandLog[i][0] = '\0';
 	}
 
 	//screen setting
