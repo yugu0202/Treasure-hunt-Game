@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <ncurses.h>
 #include "command.h"
 
 #define HISTORY 100
 
-//escape game
+//treasure hunt game
+
 
 int h,w;
 
@@ -206,6 +208,8 @@ int main(void)
 	{
 		commandLog[i][0] = '\0';
 	}
+	
+	setlocale(LC_ALL,"");
 
 	//screen setting
 	initscr();

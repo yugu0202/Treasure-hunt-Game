@@ -3,7 +3,7 @@ CFLAGS = -Wall
 all: treasure
 
 treasure: main.o base64.o command.o viewText.o
-				gcc main.o base64.o command.o viewText.o -lncurses -ltinfo -o treasure
+				gcc main.o base64.o command.o viewText.o -lncursesw -ltinfo -o treasure
 
 main.o: main.c command.h
 

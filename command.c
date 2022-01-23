@@ -195,6 +195,7 @@ void ComBase64(char* tp,char* ret,char* pipe,int* pFlag)
 
 }
 
+//疑似ls
 void ComLs(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 {
 	char* out = ret;
@@ -222,4 +223,64 @@ void ComLs(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 
 	PathConvert(in,base,path);
 	GetList(path,out);
+}
+
+void ComOpenssl(cahr* place,char* tp,char* ret,char* pipe,int* pFlag)
+{
+	int encFlag=0,dFlag=0,aesFlag=0,aFlag=0,pdFlag=0;
+	char* out = ret;
+	char path[256],base[256],in[256] = "",passwd[256],inName[256],outName[256];
+
+	if (*pFlag == 1) strcpy(in,pipe);
+
+	while (tp != NULL)
+	{
+		if (!strcmp(tp,"enc"))
+		{
+			encFlag = 1;
+		}
+		else if (!strcmp(tp,"-d"))
+		{
+			dFlag = 1;
+		}
+		else if (!strcmp(tp,"-pdkdf2"))
+		{
+			pdFlag = 1;
+		}
+		else if (!strcmp(tp,"-pass"))
+		{
+			tp = strtok(NULL," ");
+			if (!strncmp(tp,"pass:",5))
+			{
+				tp + 5;
+				strcpy(passwd,tp);
+			}
+		}
+		else if (!strcmp(tp,"-aes-256-cbc"))
+		{
+			aesFlag = 1;
+		}
+		else if (!strcmp(tp,"-in"))
+		{
+			tp = strtok(NULL," ");
+			strcpy(inName,tp);
+		}
+		else if (!strcmp(tp,"-out"))
+		{
+			tp = strtok(NULL," ");
+			strcpy(outName,tp);
+		}
+		else if (!strcmp(tp,"|"))
+		{
+			out = pipe;
+			*pFlag = 1;
+			break;
+		}
+		else
+		{
+			strcpy(in,tp);
+		}
+
+		tp = strtok(NULL," ");
+	}
 }

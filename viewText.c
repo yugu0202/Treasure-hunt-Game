@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <ncurses.h>
 #include "viewText.h"
 
@@ -13,6 +14,7 @@ void VT(int h,int w,char* text)
 	int a,i;
 
 	char v[2];
+	char test[] = "Press Q or Enter close";
 
 	getmaxyx(stdscr,h,w);
 
@@ -63,6 +65,9 @@ void VT(int h,int w,char* text)
 			move(y+a,x+i);
 		}
 	}
+
+	move(y+bh+1,x+bw-strlen(test));
+	addstr(test);
 }
 
 void ViewText(char* text)
