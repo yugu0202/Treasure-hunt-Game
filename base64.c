@@ -3,7 +3,7 @@
 #include <string.h>
 #include "base64.h"
 
-int decode_base64_to_6bit(int c)
+int DecodeBase64_6(int c)
 {
 	if (c >= 'A' && c <= 'Z') {
 		return c - 'A';
@@ -23,17 +23,17 @@ int decode_base64_to_6bit(int c)
 	}
 }
 
-void decode_base64(char *dst, char *src)
+void DecodeBase64(char *dst, char *src)
 {
 	unsigned int o[4];
 	char *p = dst;
 	size_t i;
 
 	for (i = 0; src[i]; i += 4) {
-		o[0] = decode_base64_to_6bit(src[i]);
-		o[1] = decode_base64_to_6bit(src[i + 1]);
-		o[2] = decode_base64_to_6bit(src[i + 2]);
-		o[3] = decode_base64_to_6bit(src[i + 3]);
+		o[0] = DecodeBase64_6(src[i]);
+		o[1] = DecodeBase64_6(src[i + 1]);
+		o[2] = DecodeBase64_6(src[i + 2]);
+		o[3] = DecodeBase64_6(src[i + 3]);
 
 		*p++ = (o[0] << 2) | ((o[1] & 0x30) >> 4);
 		*p++ = ((o[1] & 0xf) << 4) | ((o[2] & 0x3c) >> 2);
@@ -43,7 +43,7 @@ void decode_base64(char *dst, char *src)
 	*p = '\0';
 }
 
-void encode_base64(char *dst, char *src)
+void EncodeBase64(char *dst, char *src)
 {
 	size_t i;
 	unsigned int o[4];

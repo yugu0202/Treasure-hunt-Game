@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "base64.h"
+#include "aes.h"
 #include "viewText.h"
 #include "command.h"
 
@@ -186,11 +187,11 @@ void ComBase64(char* tp,char* ret,char* pipe,int* pFlag)
 
 	if (dFlag)
 	{
-		decode_base64(out,in);
+		DecodeBase64(out,in);
 	}
 	else
 	{
-		encode_base64(out,in);
+		EncodeBase64(out,in);
 	}
 
 }
@@ -225,13 +226,15 @@ void ComLs(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 	GetList(path,out);
 }
 
-void ComOpenssl(cahr* place,char* tp,char* ret,char* pipe,int* pFlag)
+void ComOpenssl(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 {
 	int encFlag=0,dFlag=0,aesFlag=0,aFlag=0,pdFlag=0;
 	char* out = ret;
-	char path[256],base[256],in[256] = "",passwd[256],inName[256],outName[256];
+	char path[256],base[256],passwd[256]="",inName[256]="",outName[256]="";
 
-	if (*pFlag == 1) strcpy(in,pipe);
+	strcpy(base,place);
+
+	if (*pFlag == 1) strcpy(inName,pipe);
 
 	while (tp != NULL)
 	{
@@ -243,6 +246,10 @@ void ComOpenssl(cahr* place,char* tp,char* ret,char* pipe,int* pFlag)
 		{
 			dFlag = 1;
 		}
+		else if (!strcmp(tp,"-a"))
+		{
+			aFlag = 1;
+		}
 		else if (!strcmp(tp,"-pdkdf2"))
 		{
 			pdFlag = 1;
@@ -252,7 +259,7 @@ void ComOpenssl(cahr* place,char* tp,char* ret,char* pipe,int* pFlag)
 			tp = strtok(NULL," ");
 			if (!strncmp(tp,"pass:",5))
 			{
-				tp + 5;
+				tp += 5;
 				strcpy(passwd,tp);
 			}
 		}
@@ -276,11 +283,12 @@ void ComOpenssl(cahr* place,char* tp,char* ret,char* pipe,int* pFlag)
 			*pFlag = 1;
 			break;
 		}
-		else
-		{
-			strcpy(in,tp);
-		}
 
 		tp = strtok(NULL," ");
+	}
+
+	if (encFlag && dFlag && aFlag && pdFlag && aesFlag && passwd[0] != '\0' && inName[0] != '\0' && outName[0] != '\0')
+	{
+		DecodeAes(passwd,inName,outName,out);
 	}
 }
