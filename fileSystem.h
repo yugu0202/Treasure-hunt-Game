@@ -1,12 +1,13 @@
 
-struct item
+typedef struct item
 {
-	char name[256];
+	char* name;
 	int type;
-	int childCount;
 	struct item* parent;
-	struct item *child[100];
-	char content[256];
-};
+	struct item* child;
+	struct item* next;
+	char* content;
+} Item;
 
-typedef struct item Item;
+void CreateFS(Item* );
+Item* GetItem(Item* ,char* );

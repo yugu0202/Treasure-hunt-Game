@@ -3,6 +3,7 @@
 #include <string.h>
 #include <locale.h>
 #include <ncurses.h>
+#include "fileSystem.h"
 #include "command.h"
 
 #define HISTORY 100
@@ -44,7 +45,7 @@ void Shift(char (*arr)[w],char text[])
 	strcpy(arr[0],text);
 }
 
-void CommandAnalysisSub(char* place,char* tp,char* ret,int* gameFlag)
+void CommandAnalysisSub(Item* root,char* place,char* tp,char* ret,int* gameFlag)
 {
 	char pipe[256] = "";
 	int pFlag = 0;
@@ -67,7 +68,7 @@ void CommandAnalysisSub(char* place,char* tp,char* ret,int* gameFlag)
 		{
 			tp = strtok(NULL," ");
 			//call cat
-			ComCat(place,tp,ret,pipe,&pFlag);
+			ComCat(root,place,tp,ret,pipe,&pFlag);
 		}
 		else if (!strcmp(tp,"ls"))
 		{
@@ -86,7 +87,7 @@ void CommandAnalysisSub(char* place,char* tp,char* ret,int* gameFlag)
 
 }
 
-void CommandAnalysis(char* place,char* buf,char (*log)[w],int* gameFlag)
+void CommandAnalysis(Item* root,char* place,char* buf,char (*log)[w],int* gameFlag)
 {
 	char logText[256] = "";
 	char command[256];
@@ -106,7 +107,7 @@ void CommandAnalysis(char* place,char* buf,char (*log)[w],int* gameFlag)
 		return;
 	}
 
-	CommandAnalysisSub(place,tp,logText,gameFlag);
+	CommandAnalysisSub(root,place,tp,logText,gameFlag);
 
 	Shift(log,logText);
 
@@ -118,6 +119,7 @@ void Game()
 	int gameFlag = 1;
 	int before = -1;
 	char place[] = "/outside/remains";
+	Item root;
 	char lineFormat[] = "treasure@treasure-hunt %s $ %s",bufFormat[] = "%s%c";
 	char viewText[w],buf[256] = "";
 
@@ -129,6 +131,8 @@ void Game()
 	{
 		log[i][0] = '\0';
 	}
+
+	CreateFS(&root);
 
 	while (gameFlag)
 	{
@@ -157,7 +161,7 @@ void Game()
 			before = -1;
 			Shift(log,viewText);
 
-			CommandAnalysis(place,buf,log,&gameFlag);
+			CommandAnalysis(&root,place,buf,log,&gameFlag);
 			buf[0] = '\0';
 		}
 		else if (ch == KEY_UP)

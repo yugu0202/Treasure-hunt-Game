@@ -4,6 +4,7 @@
 #include "base64.h"
 #include "aes.h"
 #include "viewText.h"
+#include "fileSystem.h"
 #include "command.h"
 
 //相対パス to 絶対パス
@@ -63,12 +64,14 @@ void PathConvert(const char* path,const char* base,char* ret)
 }
 
 //ファイルの中身を読み取る place:現在のディレクトリ in:ファイル名 out:結果
-void GetFile(char* path,char* out)
+void GetFile(Item* root,char* path,char* out)
 {
-	if (strcmp(path,"/outside/remains/key") == 0)
-	{
-		strcpy(out,"dGhpc2lza2V5");
-	}
+	Item* dfs;
+
+	dfs = GetItem(root,path);
+	if (dfs == NULL) strcpy(out,"file not found");
+	else if (dfs->type != 0) strcpy(out,"not file");
+	else strcpy(out,dfs->content);
 }
 
 void GetList(char* path,char* out)
@@ -120,7 +123,7 @@ void ComEcho(char* tp,char* ret,char* pipe,int* pFlag)
 
 
 //疑似cat
-void ComCat(char* place,char* tp,char* ret,char* pipe,int* pFlag)
+void ComCat(Item* root,char* place,char* tp,char* ret,char* pipe,int* pFlag)
 {
 	char* out = ret;
 	char path[256],base[256];
@@ -147,7 +150,7 @@ void ComCat(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 	}
 
 	PathConvert(in,base,path);
-	GetFile(path,out);
+	GetFile(root,path,out);
 	
 	if (!*pFlag)
 	{
