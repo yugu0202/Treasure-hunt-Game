@@ -1,1 +1,1 @@
-void DecodeAes(char* ,char* ,char* ,char* );
+void DecodeAes(char* ,Item* ,Item* ,char* ,char* ,char* );

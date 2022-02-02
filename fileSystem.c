@@ -9,6 +9,7 @@ void append(char* name,int type,Item* parent,Item* node)
 	node->type = type;
 	node->child = NULL;
 	node->next = NULL;
+	node->parent = parent;
 
 	if (parent == NULL) return;
 
@@ -25,6 +26,16 @@ void append(char* name,int type,Item* parent,Item* node)
 		}
 		last->next = node;
 	}
+}
+
+void SetContent(Item* root,char* path,char* content)
+{
+	Item* dfs;
+
+	dfs = GetItem(root,path);
+	if (dfs == NULL) return;
+
+	strcpy(dfs->content,content);
 }
 
 Item* ItemSearch(Item* dfs,char* name)
@@ -84,6 +95,49 @@ Item* GetItem(Item* root,char* path)
 	return dfs;
 }
 
+void ChildCount(int* count,Item* dfs)
+{
+	Item* search = dfs->child;
+
+	while (search->next != NULL)
+	{
+		search = search->next;
+		(*count)++;
+	}
+}
+
+void ItemList(Item** dfses,Item* dfs)
+{
+	int i = 0;
+	Item* search = dfs->child;
+
+	dfses[i] = search;
+
+	while (search->next != NULL)
+	{
+		search = search->next;
+		i++;
+		dfses[i] = search;
+	}
+}
+
+Item** GetItemList(Item* root,char* path)
+{
+	Item** dfses;
+	Item* dfs;
+	int count=1;
+
+	dfs = GetItem(root,path);
+
+	if (dfs->type != 1) return NULL;
+
+	ChildCount(&count,dfs);
+	dfses = (Item**)malloc(count * sizeof(Item*));
+	ItemList(dfses,dfs);
+
+	return dfses;
+}
+
 void CreateFS(Item* root)
 {
 	Item* outside = (Item*)malloc(sizeof(Item));
@@ -95,6 +149,23 @@ void CreateFS(Item* root)
 	append("outside",1,root,outside);
 	append("remains",1,outside,remains);
 	append("key",0,remains,key);
-	key->content = "test";
-	append("treasure-chest.zip",2,remains,treasureChest);
+	key->content = "Ym9uZXI=";
+	append("treasure-chest",2,remains,treasureChest);
 }
+
+/*
+void main()
+{
+	Item root;
+	Item** dfses;
+	char path[] = "/outside/remains";
+
+	CreateFS(&root);
+	dfses = GetItemList(&root,path);
+
+	for (int i = 0; dfses[i] != NULL; i++)
+	{
+		printf("%s\n",dfses[i]->name);
+	}
+}
+*/

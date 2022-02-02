@@ -11,3 +11,6 @@ typedef struct item
 
 void CreateFS(Item* );
 Item* GetItem(Item* ,char* );
+Item** GetItemList(Item* root,char* );
+void SetContent(Item* ,char* ,char* );
+void append(char* ,int ,Item* ,Item* );
