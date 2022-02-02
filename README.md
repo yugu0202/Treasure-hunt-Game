@@ -6,8 +6,8 @@ An treasure hunt game made in a school class
 
 # 作業
 完了
----
 - Ver0.0.0 コマンドラインの再現
+---
 進行中
 - Ver1.0.0 1ディレクトリ分の宝探しゲーム
 ---
