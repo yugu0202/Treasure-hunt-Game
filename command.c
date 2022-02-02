@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "base64.h"
-#include "aes.h"
-#include "viewText.h"
 #include "fileSystem.h"
+#include "base64.h"
+#include "viewText.h"
 #include "command.h"
 
 //相対パス to 絶対パス
@@ -74,24 +73,46 @@ void GetFile(Item* root,char* path,char* out)
 	else strcpy(out,dfs->content);
 }
 
-void GetList(char* path,char* out)
+//ディレクトリの中身を表示する
+void GetList(Item* root,char* path,char* out)
 {
-	if (!strcmp(path,"/outside/remains/") || !strcmp(path,"/outside/remains"))
+	Item** dfses;
+	char* op;
+
+	op = out;
+
+	dfses = GetItemList(root,path);
+
+	if (dfses == NULL)
 	{
-		strcpy(out,"key\ttreasure-chest.zip");
-	}
-	else if (!strcmp(path,"/outside") || !strcmp(path,"/outside/"))
-	{
-		strcpy(out,"remains");
-	}
-	else if (!strcmp(path,"/"))
-	{
-		strcpy(out,"outside");
+		strcpy(out,"error");
 	}
 	else
 	{
-		strcpy(out,"error:not found");
+		for (int i = 0; dfses[i] != NULL; i++)
+		{
+			strcpy(op,dfses[i]->name);
+			op += strlen(dfses[i]->name);
+			strcpy(op,"\t");
+			op += strlen("\t");
+		}
 	}
+}
+
+void Open(char* path,char* passwd,char* out)
+{
+	if (!strcmp(path,"/outside/remains/treasure-chest") && !strcmp(passwd,"boner"))
+	{
+		strcpy(out,"Congratulations");
+	}
+}
+
+void Command(char* ret,char* pipe,int* pFlag)
+{
+	char* out = ret;
+	char text[] = "cat ファイルの中身を表示する base64 base64の操作ができる ls ディレクトリの中身を表示する chestopen 宝箱をあける-inでファイル指定-passでパスワード入力";
+
+	strcpy(out,text);
 }
 
 //echo
@@ -165,7 +186,7 @@ void ComBase64(char* tp,char* ret,char* pipe,int* pFlag)
 	char* out = ret;
 	char in[256];
 
-	if (*pFlag == 1) strcpy(in,pipe);
+	if (*pFlag) strcpy(in,pipe);
 
 	while (tp != NULL)
 	{
@@ -200,7 +221,7 @@ void ComBase64(char* tp,char* ret,char* pipe,int* pFlag)
 }
 
 //疑似ls
-void ComLs(char* place,char* tp,char* ret,char* pipe,int* pFlag)
+void ComLs(Item* root,char* place,char* tp,char* ret,char* pipe,int* pFlag)
 {
 	char* out = ret;
 	char path[256],base[256],in[256] = "";
@@ -226,14 +247,16 @@ void ComLs(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 	}
 
 	PathConvert(in,base,path);
-	GetList(path,out);
+	GetList(root,path,out);
 }
 
-void ComOpenssl(char* place,char* tp,char* ret,char* pipe,int* pFlag)
+/*
+void ComOpenssl(Item* root,char* place,char* tp,char* ret,char* pipe,int* pFlag)
 {
-	int encFlag=0,dFlag=0,aesFlag=0,aFlag=0,pdFlag=0;
+	int encFlag=0,dFlag=0,aesFlag=0,aFlag=0,pbFlag=0;
 	char* out = ret;
 	char path[256],base[256],passwd[256]="",inName[256]="",outName[256]="";
+	Item* in;
 
 	strcpy(base,place);
 
@@ -253,9 +276,9 @@ void ComOpenssl(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 		{
 			aFlag = 1;
 		}
-		else if (!strcmp(tp,"-pdkdf2"))
+		else if (!strcmp(tp,"-pbkdf2"))
 		{
-			pdFlag = 1;
+			pbFlag = 1;
 		}
 		else if (!strcmp(tp,"-pass"))
 		{
@@ -290,8 +313,46 @@ void ComOpenssl(char* place,char* tp,char* ret,char* pipe,int* pFlag)
 		tp = strtok(NULL," ");
 	}
 
-	if (encFlag && dFlag && aFlag && pdFlag && aesFlag && passwd[0] != '\0' && inName[0] != '\0' && outName[0] != '\0')
+	if (encFlag && dFlag && aFlag && pbFlag && aesFlag)
 	{
-		DecodeAes(passwd,inName,outName,out);
+//strcmp(passwd,"") && strcmp(inName,"") && strcmp(outName,"")
+		PathConvert(inName,base,path);
+		in = GetItem(root,path);
+		if (in == NULL || in->type != 2) return;
+		DecodeAes(passwd,root,in,outName,out,path);
 	}
+}
+*/
+
+void ChestOpen(char* place,char* tp,char* ret,char* pipe,int* pFlag)
+{
+	char* out = ret;
+	char path[256],base[256],inName[256]="",passwd[256]="";
+
+	strcpy(base,place);
+
+	while (tp != NULL)
+	{
+		if (!strcmp(tp,"|"))
+		{
+			out = pipe;
+			*pFlag = 1;
+			break;
+		}
+		else if (!strcmp(tp,"-in"))
+		{
+			tp = strtok(NULL," ");
+			strcpy(inName,tp);
+		}
+		else if (!strcmp(tp,"-pass"))
+		{
+			tp = strtok(NULL," ");
+			strcpy(passwd,tp);
+		}
+
+		tp = strtok(NULL," ");
+	}
+
+	PathConvert(inName,base,path);
+	Open(path,passwd,out);
 }

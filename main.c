@@ -19,11 +19,11 @@ char (*commandLog)[256];
 int Title()
 {
 	int x,y;
-	char titleText[][256] = {"command treasure hunt","[s] start","[q] quit"};
+	char titleText[][256] = {"command treasure hunt","[s] start","[q] quit","[h] help"};
 
 	erase();
 
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		y = (h/2) + i*2;
 		x = (w - strlen(titleText[i]))/2;
@@ -36,7 +36,7 @@ int Title()
 	return getch();
 }
 
-void Shift(char (*arr)[w],char text[])
+void Shift(char (*arr)[w],char* text)
 {
 	for (int i = (h-1); i >= 0; i--)
 	{
@@ -74,7 +74,19 @@ void CommandAnalysisSub(Item* root,char* place,char* tp,char* ret,int* gameFlag)
 		{
 			tp = strtok(NULL," ");
 			//call ls
-			ComLs(place,tp,ret,pipe,&pFlag);
+			ComLs(root,place,tp,ret,pipe,&pFlag);
+		}
+		else if (!strcmp(tp,"chestopen"))
+		{
+			tp = strtok(NULL," ");
+			//call chestopen
+			ChestOpen(place,tp,ret,pipe,&pFlag);
+		}
+		else if (!strcmp(tp,"command"))
+		{
+			tp = strtok(NULL," ");
+			//call command
+			Command(ret,pipe,&pFlag);
 		}
 		else if (strcmp(tp,"exit") == 0)
 		{
@@ -202,6 +214,52 @@ void Game()
 	free(log);
 }
 
+int StrCount(char* str)
+{
+	int count = 0;
+
+	while (*str != '\0')
+	{
+		if ((*str & 0xC0) != 0x80) { count++; }
+		str++;
+	}
+
+	return count;
+}
+
+void Help()
+{
+	int x,y;
+	int ch;
+	char titleText[][257] = {"command treasure hunt","コマンド操作で宝探しを行うゲームです","ゲーム開始後commandと入力すると使えるコマンドの一覧が出てきます","curl https://hint.treasure-hunting.instituteと入力するとヒントが出ます"};
+
+	erase();
+
+	y = (h/2);
+	x = (w - strlen(titleText[0]))/2;
+	move(y,x);
+	addstr(titleText[0]);
+	y = (h/2) + 2;
+	x = (w - 38)/2;
+	move(y,x);
+	addstr(titleText[1]);
+	y = (h/2) + 4;
+	x = (w - 60)/2;
+	move(y,x);
+	addstr(titleText[2]);
+	y = (h/2) + 6;
+	x = (w - 68)/2;
+	move(y,x);
+	//addstr(titleText[3]);
+
+	refresh();
+
+	while (ch != 'q')
+	{
+		ch = getch();
+	}
+}
+
 int main(void)
 {
 	int ch;
@@ -228,6 +286,7 @@ int main(void)
 		ch = Title(h,w);
 		if (ch == 'q') break;
 		if (ch == 's') Game(h,w);
+		if (ch == 'h') Help(h,w);
 	}
 
 	endwin();
